@@ -8,3 +8,6 @@ pub mod verification;
 pub mod envelope;
 #[cfg(feature = "tee-ingress")]
 pub mod attestation;
+
+#[cfg(test)]
+mod tests;

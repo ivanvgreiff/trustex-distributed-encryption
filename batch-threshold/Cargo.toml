@@ -36,3 +36,7 @@ harness = false
 [[bench]]
 name = "decrypt_all"
 harness = false
+
+[[bench]]
+name = "attestation_vs_crypto"
+harness = false
