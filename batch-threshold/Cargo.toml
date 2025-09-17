@@ -1,0 +1,38 @@
+[package]
+name = "batch-threshold"
+version = "0.1.0"
+edition = "2021"
+authors = ["Guru-Vamsi Policharla"]
+
+[dependencies]
+ark-poly = { workspace = true }
+ark-ff = { workspace = true }
+ark-ec = { workspace = true }
+ark-std = { workspace = true }
+ark-serialize = { workspace = true }
+ark-bls12-381 = { workspace = true }
+blake3 = { workspace = true }
+merlin = { workspace = true }
+retry = { workspace = true }
+criterion = { workspace = true }
+rand = { workspace = true }
+thiserror = { workspace = true }
+ed25519-dalek = { workspace = true, optional = true }
+
+[features]
+asm = ["ark-ff/asm"]
+tee-ingress = []     # enable Envelope/attestation policy types
+dev-attest = ["ed25519-dalek"]      # dev-only signer/verifier (no real RA)
+default = []         # keep default pure-crypto behavior
+
+[[bench]]
+name = "encryption"
+harness = false
+
+[[bench]]
+name = "partial_decryption"
+harness = false
+
+[[bench]]
+name = "decrypt_all"
+harness = false

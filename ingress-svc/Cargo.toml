@@ -1,0 +1,18 @@
+[package]
+name = "ingress-svc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+batch-threshold = { path = "../batch-threshold", features = ["tee-ingress", "dev-attest"] }
+blake3 = { workspace = true }
+ed25519-dalek = { workspace = true }
+anyhow = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_bytes = { workspace = true }
+rand = { workspace = true }
+ark-bls12-381 = { workspace = true }
+ark-serialize = { workspace = true }
+ark-ec = { workspace = true }

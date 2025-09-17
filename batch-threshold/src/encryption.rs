@@ -6,6 +6,7 @@ use merlin::Transcript;
 use retry::{delay::NoDelay, retry};
 
 use crate::utils::{add_to_transcript, hash_to_bytes, xor};
+use crate::verification::verify_ciphertext_relation;
 
 #[derive(CanonicalSerialize, CanonicalDeserialize, Clone, Default)]
 pub struct DLogProof<F: PrimeField> {
@@ -29,36 +30,8 @@ pub struct Ciphertext<E: Pairing> {
 impl<E: Pairing> Ciphertext<E> {
     /// panicks if ciphertext does not verify
     pub fn verify(&self, htau: E::G2, pk: E::G2) {
-        let g = E::G1::generator();
-        let h = E::G2::generator();
-
-        // k2.ct2^c = h^{(tau-x)*z_alpha}, k3.ct3^c = h^{z_alpha} * pk^{z_beta}, k4.ct4^c = h^{z_beta}, and k_s.gs^c = g^{z_s}
-        let minus_c = -self.pi.c;
-        let recovered_k2 = (htau - (h * self.x)) * self.pi.z_alpha + (self.ct2 * minus_c);
-        let recovered_k3 = h * self.pi.z_alpha + pk * self.pi.z_beta + (self.ct3 * minus_c);
-        let recovered_k4 = h * self.pi.z_beta + (self.ct4 * minus_c);
-        let recovered_k_s = g * self.pi.z_s + (self.gs * minus_c);
-
-        let mut ts: Transcript = Transcript::new(&[0u8]);
-        add_to_transcript(&mut ts, b"ct1", self.ct1);
-        add_to_transcript(&mut ts, b"ct2", self.ct2);
-        add_to_transcript(&mut ts, b"ct3", self.ct3);
-        add_to_transcript(&mut ts, b"ct4", self.ct4);
-        add_to_transcript(&mut ts, b"gs", self.gs);
-        add_to_transcript(&mut ts, b"x", self.x);
-
-        add_to_transcript(&mut ts, b"k2", recovered_k2);
-        add_to_transcript(&mut ts, b"k3", recovered_k3);
-        add_to_transcript(&mut ts, b"k4", recovered_k4);
-        add_to_transcript(&mut ts, b"k_s", recovered_k_s);
-
-        // Fiat-Shamir to get challenge
-        let mut c_bytes = [0u8; 31];
-        ts.challenge_bytes(&[8u8], &mut c_bytes);
-        let c = E::ScalarField::from_random_bytes(&c_bytes).unwrap();
-
-        // assert that the recomputed challenge matches
-        assert_eq!(self.pi.c, c);
+        verify_ciphertext_relation(self, &htau, &pk)
+            .expect("Ciphertext verification failed");
     }
 }
 

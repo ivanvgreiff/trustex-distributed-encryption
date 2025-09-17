@@ -11,6 +11,11 @@ use crate::{
     utils::{hash_to_bytes, lagrange_interp_eval, open_all_values, xor},
 };
 
+#[cfg(feature = "tee-ingress")]
+use crate::attestation::{AcceptancePolicy, AttestationVerifier, accept_or_verify};
+#[cfg(feature = "tee-ingress")]
+use crate::envelope::Envelope;
+
 #[derive(CanonicalSerialize, CanonicalDeserialize)]
 pub struct SecretKey<E: Pairing> {
     sk_share: E::ScalarField,
@@ -43,6 +48,42 @@ impl<E: Pairing> SecretKey<E> {
         let mut fevals = vec![E::ScalarField::zero(); batch_size];
         for i in 0..batch_size {
             let tg_bytes = hash_to_bytes(ct[i].gs);
+            fevals[i] = E::ScalarField::from_random_bytes(&tg_bytes).unwrap();
+        }
+        let fcoeffs = tx_domain.ifft(&fevals);
+        let com = <E::G1 as VariableBaseMSM>::msm(&crs.powers_of_g, &fcoeffs).unwrap();
+        let delta = hid - com;
+
+        let pd = delta * self.sk_share;
+
+        pd
+    }
+
+    /// New helper for Envelope – gates verification via attestation policy or falls back to crypto verify.
+    #[cfg(feature = "tee-ingress")]
+    pub fn partial_decrypt_envelope(
+        &self,
+        env: &Vec<Envelope<E>>,
+        hid: E::G1,
+        pk: E::G2,
+        crs: &CRS<E>,
+        pol: &AcceptancePolicy,
+        av: &dyn AttestationVerifier,
+    ) -> E::G1 {
+        let batch_size = crs.powers_of_g.len();
+        
+        // Admission gate: attested fast-path or pure crypto for each envelope
+        for i in 0..batch_size {
+            accept_or_verify(&env[i], pol, av, &crs.htau, &pk)
+                .expect("verification failed");
+        }
+        
+        // Proceed exactly as in the existing function using env[i].ct
+        let tx_domain = Radix2EvaluationDomain::<E::ScalarField>::new(batch_size).unwrap();
+
+        let mut fevals = vec![E::ScalarField::zero(); batch_size];
+        for i in 0..batch_size {
+            let tg_bytes = hash_to_bytes(env[i].ct.gs);
             fevals[i] = E::ScalarField::from_random_bytes(&tg_bytes).unwrap();
         }
         let fcoeffs = tx_domain.ifft(&fevals);
