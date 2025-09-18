@@ -17,13 +17,18 @@ retry = { workspace = true }
 criterion = { workspace = true }
 rand = { workspace = true }
 thiserror = { workspace = true }
+serde = { version = "1", features = ["derive"] }
+serde_bytes = "0.11"
+serde_json = "1"
+zeroize = "1"
 ed25519-dalek = { workspace = true, optional = true }
 
 [features]
 asm = ["ark-ff/asm"]
-tee-ingress = []     # enable Envelope/attestation policy types
-dev-attest = ["ed25519-dalek"]      # dev-only signer/verifier (no real RA)
-default = []         # keep default pure-crypto behavior
+tee-ingress = []                  # from Subplan A (already present in your repo-after-A)
+tee-dealer = []                   # NEW: enables AttestedDealer types & checks
+dev-attest = ["ed25519-dalek"]    # NEW: enable dev Ed25519 signing/verification
+default = []
 
 [[bench]]
 name = "encryption"

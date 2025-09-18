@@ -7,7 +7,7 @@ use std::{iter, vec};
 
 use crate::utils::lagrange_interp_eval;
 
-#[derive(CanonicalSerialize, CanonicalDeserialize, Clone)]
+#[derive(Debug, CanonicalSerialize, CanonicalDeserialize, Clone)]
 pub struct CRS<E: Pairing> {
     pub powers_of_g: Vec<E::G1Affine>,
     pub htau: E::G2,
