@@ -7,7 +7,7 @@ use std::{iter, vec};
 
 use crate::utils::lagrange_interp_eval;
 
-#[derive(CanonicalSerialize, CanonicalDeserialize, Clone)]
+#[derive(CanonicalSerialize, CanonicalDeserialize, Clone, Debug)]
 pub struct CRS<E: Pairing> {
     pub powers_of_g: Vec<E::G1Affine>,
     pub htau: E::G2,
@@ -30,6 +30,15 @@ where
 {
     pub fn new(batch_size: usize, n: usize, t: usize) -> Self {
         let rng = &mut thread_rng();
+        Self {
+            batch_size,
+            n,
+            t,
+            sk: E::ScalarField::rand(rng),
+        }
+    }
+
+    pub fn new_with_rng<R: RngCore>(batch_size: usize, n: usize, t: usize, rng: &mut R) -> Self {
         Self {
             batch_size,
             n,

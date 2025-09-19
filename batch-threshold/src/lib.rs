@@ -9,5 +9,8 @@ pub mod envelope;
 #[cfg(feature = "tee-ingress")]
 pub mod attestation;
 
+#[cfg(feature = "attested-setup")]
+pub mod attested_setup;
+
 #[cfg(test)]
 mod tests;
