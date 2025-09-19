@@ -45,3 +45,7 @@ harness = false
 [[bench]]
 name = "attestation_vs_crypto"
 harness = false
+
+[[bench]]
+name = "dealer_comparison"
+harness = false
